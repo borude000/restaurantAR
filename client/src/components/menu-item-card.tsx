@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
+import MenuItem3DModal from "./menu-item-3d-modal";
 import type { MenuItemWithCategory } from "@shared/schema";
 
 interface MenuItemCardProps {
@@ -11,6 +13,7 @@ interface MenuItemCardProps {
 }
 
 export default function MenuItemCard({ item }: MenuItemCardProps) {
+  const [show3D, setShow3D] = useState(false);
   const { addItem } = useCart();
   const { toast } = useToast();
 
@@ -23,11 +26,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   };
 
   const handlePreview = () => {
-    // Mock 3D preview functionality
-    toast({
-      title: "3D Preview",
-      description: "3D model preview will be available in the next update",
-    });
+    setShow3D(true);
   };
 
   return (
@@ -86,6 +85,13 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
           </div>
         </div>
       </div>
+      
+      {/* 3D Modal */}
+      <MenuItem3DModal 
+        item={item}
+        open={show3D}
+        onOpenChange={setShow3D}
+      />
     </Card>
   );
 }

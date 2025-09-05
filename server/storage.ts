@@ -18,7 +18,7 @@ import {
   type OrderWithItems,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -275,11 +275,11 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       // Fetch menu items for the created order items
-      const menuItemIds = items.map(item => item.menuItemId);
+      const menuItemIds = items.map(item => item.menuItemId).filter(Boolean);
       const menuItemsData = await tx
         .select()
         .from(menuItems)
-        .where(sql`${menuItems.id} = ANY(${menuItemIds})`);
+        .where(inArray(menuItems.id, menuItemIds));
 
       const orderItemsWithMenuItems = createdOrderItems.map((orderItem) => ({
         ...orderItem,

@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -32,6 +33,9 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" data-testid="dialog-cart">
         <DialogHeader>
           <DialogTitle>Your Order</DialogTitle>
+          <DialogDescription>
+            Review your items before checkout
+          </DialogDescription>
         </DialogHeader>
 
         {items.length === 0 ? (

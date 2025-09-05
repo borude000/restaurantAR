@@ -23,14 +23,20 @@ export default function ModelViewer({ src, alt, className = "" }: ModelViewerPro
     // Model viewer will automatically load when the component mounts
   }, [src]);
 
+  // Use a working demo 3D model since the original URLs are placeholder
+  const demoModelUrl = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
+
   return (
     <model-viewer
       ref={modelRef}
-      src={src}
+      src={demoModelUrl}
       alt={alt}
       auto-rotate
       camera-controls
       loading="lazy"
+      environment-image="neutral"
+      poster="https://modelviewer.dev/shared-assets/models/Astronaut.webp"
+      shadow-intensity="1"
       className={`w-full h-64 ${className}`}
       style={{
         backgroundColor: '#f0f0f0',

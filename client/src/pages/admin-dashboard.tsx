@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/use-orders";
 import { useToast } from "@/hooks/use-toast";
+import MenuManagement from "@/components/menu-management";
 import type { OrderWithItems } from "@shared/schema";
 
 interface DashboardStats {
@@ -178,21 +179,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="menu" className="mt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Menu Management</h2>
-              <Button data-testid="button-add-menu-item">
-                <Utensils size={16} className="mr-2" />
-                Add Menu Item
-              </Button>
-            </div>
-
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Utensils size={48} className="mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Menu Management</h3>
-                <p className="text-muted-foreground">Menu management features will be available in the next update.</p>
-              </CardContent>
-            </Card>
+            <MenuManagement />
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">

@@ -30,28 +30,23 @@ export default function MenuItem3DModal({ item, open, onOpenChange }: MenuItem3D
         </DialogHeader>
         
         <div className="space-y-4">
-          {item.modelUrl ? (
-            <ModelViewer
-              src={item.modelUrl}
-              alt={`3D model of ${item.name}`}
-              className="border border-border rounded-lg"
-            />
-          ) : (
-            <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center border border-border">
-              <div className="text-center space-y-2">
-                <p className="text-muted-foreground">3D Model Not Available</p>
-                <p className="text-sm text-muted-foreground">
-                  This item doesn't have a 3D model yet
-                </p>
-              </div>
-            </div>
-          )}
+          <ModelViewer
+            src={item.modelUrl || ""}
+            alt={`3D model of ${item.name}`}
+            className="border border-border rounded-lg"
+          />
           
           <div className="text-center space-y-2">
             <h3 className="font-semibold">{item.name}</h3>
             <p className="text-sm text-muted-foreground">{item.description}</p>
             <p className="text-lg font-bold text-primary">
               ${Number(item.price).toFixed(2)}
+            </p>
+          </div>
+          
+          <div className="bg-accent/20 p-3 rounded-lg">
+            <p className="text-xs text-muted-foreground text-center">
+              💡 Tip: Click "AR View" to see this dish in your real environment through your camera!
             </p>
           </div>
           

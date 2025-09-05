@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "@google/model-viewer";
+import { Button } from "@/components/ui/button";
+import { Camera, RotateCcw } from "lucide-react";
 
 interface ModelViewerProps {
   src: string;
@@ -18,6 +20,7 @@ declare global {
 
 export default function ModelViewer({ src, alt, className = "" }: ModelViewerProps) {
   const modelRef = useRef<HTMLElement>(null);
+  const [isARMode, setIsARMode] = useState(false);
 
   useEffect(() => {
     // Model viewer will automatically load when the component mounts
@@ -26,23 +29,65 @@ export default function ModelViewer({ src, alt, className = "" }: ModelViewerPro
   // Use a working demo 3D model since the original URLs are placeholder
   const demoModelUrl = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
 
+  const handleARClick = () => {
+    if (modelRef.current && 'activateAR' in modelRef.current) {
+      (modelRef.current as any).activateAR();
+      setIsARMode(true);
+    }
+  };
+
+  const handleRegularView = () => {
+    setIsARMode(false);
+  };
+
   return (
-    <model-viewer
-      ref={modelRef}
-      src={demoModelUrl}
-      alt={alt}
-      auto-rotate
-      camera-controls
-      loading="lazy"
-      environment-image="neutral"
-      poster="https://modelviewer.dev/shared-assets/models/Astronaut.webp"
-      shadow-intensity="1"
-      className={`w-full h-64 ${className}`}
-      style={{
-        backgroundColor: '#f0f0f0',
-        borderRadius: '8px',
-      }}
-      data-testid="model-viewer"
-    />
+    <div className={`relative ${className}`}>
+      <model-viewer
+        ref={modelRef}
+        src={demoModelUrl}
+        alt={alt}
+        auto-rotate
+        camera-controls
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        loading="lazy"
+        environment-image="neutral"
+        poster="https://modelviewer.dev/shared-assets/models/Astronaut.webp"
+        shadow-intensity="1"
+        className="w-full h-64"
+        style={{
+          backgroundColor: '#f0f0f0',
+          borderRadius: '8px',
+        }}
+        data-testid="model-viewer"
+      />
+      
+      {/* AR Controls */}
+      <div className="absolute bottom-4 right-4 flex space-x-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleARClick}
+          className="bg-black/70 text-white hover:bg-black/80"
+          data-testid="button-ar-view"
+        >
+          <Camera size={16} className="mr-1" />
+          AR View
+        </Button>
+        
+        {isARMode && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={handleRegularView}
+            className="bg-black/70 text-white hover:bg-black/80"
+            data-testid="button-regular-view"
+          >
+            <RotateCcw size={16} className="mr-1" />
+            Regular
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

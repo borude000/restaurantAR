@@ -26,8 +26,6 @@ export default function ModelViewer({ src, alt, className = "" }: ModelViewerPro
     // Model viewer will automatically load when the component mounts
   }, [src]);
 
-  // Use a working demo 3D model since the original URLs are placeholder
-  const demoModelUrl = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
 
   const handleARClick = () => {
     if (modelRef.current && 'activateAR' in modelRef.current) {
@@ -42,9 +40,9 @@ export default function ModelViewer({ src, alt, className = "" }: ModelViewerPro
 
   return (
     <div className={`relative ${className}`}>
-      <model-viewer
-        ref={modelRef}
-        src={demoModelUrl}
+         <model-viewer
+           ref={modelRef}
+           src={src}
         alt={alt}
         auto-rotate
         camera-controls

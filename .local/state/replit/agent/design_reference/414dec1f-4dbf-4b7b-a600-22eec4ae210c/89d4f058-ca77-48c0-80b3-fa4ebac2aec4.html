@@ -1,0 +1,1287 @@
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Restaurant Ordering System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+       theme: {
+         extend: {
+          borderRadius: {
+          lg: "var(--radius)",
+          md: "calc(var(--radius) - 2px)",
+          sm: "calc(var(--radius) - 4px)",
+          },
+          colors: {
+          background: "var(--background)",
+          foreground: "var(--foreground)",
+          card: {
+             DEFAULT: "var(--card)",
+             foreground: "var(--card-foreground)",
+          },
+          popover: {
+             DEFAULT: "var(--popover)",
+             foreground: "var(--popover-foreground)",
+          },
+          primary: {
+             DEFAULT: "var(--primary)",
+             foreground: "var(--primary-foreground)",
+          },
+          secondary: {
+             DEFAULT: "var(--secondary)",
+             foreground: "var(--secondary-foreground)",
+          },
+          muted: {
+             DEFAULT: "var(--muted)",
+             foreground: "var(--muted-foreground)",
+          },
+          accent: {
+             DEFAULT: "var(--accent)",
+             foreground: "var(--accent-foreground)",
+          },
+          destructive: {
+             DEFAULT: "var(--destructive)",
+             foreground: "var(--destructive-foreground)",
+          },
+          border: "var(--border)",
+          input: "var(--input)",
+          ring: "var(--ring)",
+          chart: {
+             "1": "var(--chart-1)",
+             "2": "var(--chart-2)",
+             "3": "var(--chart-3)",
+             "4": "var(--chart-4)",
+             "5": "var(--chart-5)",
+          }
+          },
+          fontFamily: {
+          sans: ["var(--font-sans)"],
+          serif: ["var(--font-serif)"],
+          mono: ["var(--font-mono)"],
+       }
+  },
+}
+    };
+    </script>
+    <style>
+        :root {
+            --card: #101011;
+            --ring: hsl(221.74, 13.14%, 34.31%);
+            --input: #2b2b2b;
+            --muted: #404040;
+            --accent: hsl(0, 0%, 92.16%);
+            --border: #2b2b2b;
+            --radius: 0.4rem;
+            --shadow: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00), 0px 1px 2px -1px hsl(9, 75%, 61% / 0.00);
+            --chart-1: hsl(203.8863, 88.2845%, 53.1373%);
+            --chart-2: hsl(159.7826, 100%, 36.0784%);
+            --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
+            --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
+            --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
+            --popover: hsl(45, 25%, 97%);
+            --primary: #f5f5f5;
+            --sidebar: hsl(45, 25%, 97%);
+            --spacing: 0.25rem;
+            --font-mono: Menlo, monospace;
+            --font-sans: 'Inter', sans-serif;
+            --secondary: #ebebeb;
+            --shadow-lg: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00), 0px 4px 6px -1px hsl(9, 75%, 61% / 0.00);
+            --shadow-md: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00), 0px 2px 4px -1px hsl(9, 75%, 61% / 0.00);
+            --shadow-sm: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00), 0px 1px 2px -1px hsl(9, 75%, 61% / 0.00);
+            --shadow-xl: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00), 0px 8px 10px -1px hsl(9, 75%, 61% / 0.00);
+            --shadow-xs: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00);
+            --background: #090909;
+            --font-serif: 'Inter', sans-serif;
+            --foreground: #ebebeb;
+            --shadow-2xl: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00);
+            --shadow-2xs: 0px 2px 0px 0px hsl(9, 75%, 61% / 0.00);
+            --destructive: hsl(356.3033, 90.5579%, 54.3137%);
+            --sidebar-ring: hsl(9, 75%, 61%);
+            --sidebar-accent: hsl(25, 45%, 80%);
+            --sidebar-border: hsl(45, 15%, 80%);
+            --card-foreground: hsl(0, 0%, 100%);
+            --sidebar-primary: hsl(9, 75%, 61%);
+            --tracking-normal: 0em;
+            --muted-foreground: #ababab;
+            --accent-foreground: hsl(0, 0%, 0%);
+            --popover-foreground: hsl(0, 0%, 100%);
+            --primary-foreground: #0d0d0d;
+            --sidebar-foreground: hsl(20, 14%, 17%);
+            --secondary-foreground: #0d0d0d;
+            --destructive-foreground: #ffffff;
+            --sidebar-accent-foreground: hsl(20, 14%, 17%);
+            --sidebar-primary-foreground: hsl(0, 0%, 100%);
+        }
+        
+        .dark {
+            --card: hsl(20, 14%, 8%);
+            --ring: hsl(9, 75%, 61%);
+            --input: hsl(20, 14%, 18%);
+            --muted: hsl(20, 14%, 15%);
+            --accent: hsl(25, 45%, 20%);
+            --border: hsl(20, 14%, 15%);
+            --chart-1: hsl(203.8863, 88.2845%, 53.1373%);
+            --chart-2: hsl(159.7826, 100%, 36.0784%);
+            --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
+            --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
+            --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
+            --popover: hsl(20, 14%, 4%);
+            --primary: hsl(9, 75%, 61%);
+            --sidebar: hsl(20, 14%, 8%);
+            --secondary: hsl(30, 15%, 52%);
+            --background: hsl(20, 14%, 4%);
+            --foreground: hsl(45, 25%, 91%);
+            --destructive: hsl(356.3033, 90.5579%, 54.3137%);
+            --sidebar-ring: hsl(9, 75%, 61%);
+            --sidebar-accent: hsl(25, 45%, 20%);
+            --sidebar-border: hsl(20, 14%, 15%);
+            --card-foreground: hsl(45, 25%, 85%);
+            --sidebar-primary: hsl(9, 75%, 61%);
+            --muted-foreground: hsl(45, 15%, 46%);
+            --accent-foreground: hsl(45, 25%, 85%);
+            --popover-foreground: hsl(45, 25%, 91%);
+            --primary-foreground: hsl(0, 0%, 100%);
+            --sidebar-foreground: hsl(45, 25%, 85%);
+            --secondary-foreground: hsl(0, 0%, 100%);
+            --destructive-foreground: hsl(0, 0%, 100%);
+            --sidebar-accent-foreground: hsl(45, 25%, 85%);
+            --sidebar-primary-foreground: hsl(0, 0%, 100%);
+        }
+        
+        .floating-cart {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            display: none;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .order-status-tracker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        
+        .order-status-tracker::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+        
+        .status-step {
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .status-step.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--primary-foreground);
+        }
+        
+        .status-step.completed {
+            background: var(--chart-2);
+            border-color: var(--chart-2);
+            color: white;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: App Container -->
+    <div id="app" class="min-h-screen">
+        
+        <!-- @COMPONENT: QR Landing Page -->
+        <div id="qr-landing" class="min-h-screen flex flex-col items-center justify-center p-6">
+            <div class="max-w-md w-full text-center space-y-8">
+                <!-- Restaurant logo and welcome -->
+                <div class="space-y-4">
+                    <div class="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto">
+                        <i class="fas fa-utensils text-3xl text-primary-foreground"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-foreground">Welcome to Bistro</h1>
+                    <p class="text-muted-foreground">Scan complete! Please enter your table number to start ordering.</p>
+                </div>
+                
+                <!-- Table number input -->
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="table-number" class="block text-sm font-medium text-foreground">Table Number</label>
+                        <input 
+                            type="number" 
+                            id="table-number" 
+                            placeholder="Enter table number (1-20)" 
+                            class="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            data-bind="tableNumber"
+                            data-mock="true"
+                        />
+                    </div>
+                    <button 
+                        onclick="showMenu()" 
+                        class="w-full bg-primary text-primary-foreground py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                        data-event="click:submitTableNumber"
+                        data-implementation="Validate table number before proceeding"
+                    >
+                        Continue to Menu
+                    </button>
+                </div>
+                
+                <!-- Restaurant info -->
+                <div class="text-center text-sm text-muted-foreground">
+                    <p>• Free WiFi: BistroGuest</p>
+                    <p>• Call server: Press the bell on your table</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: Menu Page -->
+        <div id="menu-page" class="hidden min-h-screen">
+            <!-- Header -->
+            <header class="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-40">
+                <div class="flex items-center justify-between p-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <i class="fas fa-utensils text-sm text-primary-foreground"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-semibold text-foreground">Bistro Menu</h1>
+                            <p class="text-xs text-muted-foreground" data-bind="tableInfo">Table <span data-mock="true">5</span></p>
+                        </div>
+                    </div>
+                    <button onclick="showOrderStatus()" class="p-2 text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-receipt"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Category Filter -->
+            <div class="sticky top-[73px] bg-background/95 backdrop-blur-sm border-b border-border z-30">
+                <div class="flex overflow-x-auto p-4 space-x-2 scrollbar-hide">
+                    <button class="category-btn active flex-shrink-0 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium" data-category="all">
+                        All Items
+                    </button>
+                    <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-medium hover:bg-accent" data-category="starters">
+                        Starters
+                    </button>
+                    <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-medium hover:bg-accent" data-category="mains">
+                        Main Course
+                    </button>
+                    <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-medium hover:bg-accent" data-category="drinks">
+                        Drinks
+                    </button>
+                    <button class="category-btn flex-shrink-0 px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-medium hover:bg-accent" data-category="desserts">
+                        Desserts
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Menu Items -->
+            <main class="p-4 pb-24">
+                <!-- @MAP: menuItems.filter(item => category === 'all' || item.category === category).map(item => ( -->
+                
+                <!-- Starters Section -->
+                <section class="mb-8" data-category="starters">
+                    <h2 class="text-xl font-semibold mb-4 text-foreground">Starters</h2>
+                    <div class="space-y-4">
+                        <!-- Dish Card 1 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Gourmet bruschetta with tomatoes and basil on rustic bread -->
+                                <img src="https://pixabay.com/get/g920a0ff81e75d1f0c835c1609828b11bbf4b993b4da5d45ecf745763e53bd2a26f824a6d7be20fc6e9a50a0a11b184d033f89b769dff69fc3322406a501c941b_1280.jpg" alt="Truffle Bruschetta" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Truffle Bruschetta</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">Fresh tomatoes, basil, truffle oil on toasted sourdough</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$12.99</span>
+                                                <button onclick="showARPreview()" class="ml-3 text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                                                    <i class="fas fa-cube mr-1"></i>3D View
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center" data-event="click:addToCart" data-implementation="Add item to cart with quantity">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dish Card 2 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Fresh spring rolls with vegetables and herbs on a white plate -->
+                                <img src="https://pixabay.com/get/g4f190e856d82f98290efb279ab5b3a4f8405c575d92bb900b1d36caba99dbfc1d2164da587e31536dbf514281c35e31ac316f0fb03e528adb2903436d25a2119_1280.jpg" alt="Asian Spring Rolls" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Asian Spring Rolls</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">Fresh vegetables, herbs, rice paper with peanut sauce</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$9.99</span>
+                                                <button onclick="showARPreview()" class="ml-3 text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                                                    <i class="fas fa-cube mr-1"></i>3D View
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Main Course Section -->
+                <section class="mb-8" data-category="mains">
+                    <h2 class="text-xl font-semibold mb-4 text-foreground">Main Course</h2>
+                    <div class="space-y-4">
+                        <!-- Dish Card 3 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Grilled salmon fillet with herbs and lemon on a white plate -->
+                                <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200" alt="Grilled Salmon" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Grilled Salmon</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">Atlantic salmon with seasonal vegetables and lemon butter</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$24.99</span>
+                                                <button onclick="showARPreview()" class="ml-3 text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                                                    <i class="fas fa-cube mr-1"></i>3D View
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dish Card 4 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Ribeye steak with vegetables and herbs on a dark plate -->
+                                <img src="https://images.unsplash.com/photo-1558030006-450675393462?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200" alt="Ribeye Steak" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Ribeye Steak</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">12oz prime ribeye with garlic mashed potatoes</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$32.99</span>
+                                                <button onclick="showARPreview()" class="ml-3 text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                                                    <i class="fas fa-cube mr-1"></i>3D View
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Drinks Section -->
+                <section class="mb-8" data-category="drinks">
+                    <h2 class="text-xl font-semibold mb-4 text-foreground">Drinks</h2>
+                    <div class="space-y-4">
+                        <!-- Drink Card 1 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Craft cocktail with garnish in elegant glassware -->
+                                <img src="https://images.unsplash.com/photo-1551538827-9c037cb4f32a?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200" alt="Signature Cocktail" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Signature Cocktail</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">House special with premium spirits and fresh herbs</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$14.99</span>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Drink Card 2 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Fresh fruit smoothie in a tall glass with colorful fruits -->
+                                <img src="https://images.unsplash.com/photo-1622597467836-f3285f2131b8?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200" alt="Fresh Juice" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Fresh Orange Juice</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">Freshly squeezed Valencia oranges</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$6.99</span>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Desserts Section -->
+                <section class="mb-8" data-category="desserts">
+                    <h2 class="text-xl font-semibold mb-4 text-foreground">Desserts</h2>
+                    <div class="space-y-4">
+                        <!-- Dessert Card 1 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Chocolate lava cake with ice cream and berry garnish -->
+                                <img src="https://images.unsplash.com/photo-1624353365286-3f8d62daad51?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200" alt="Chocolate Lava Cake" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Chocolate Lava Cake</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">Warm chocolate cake with molten center and vanilla ice cream</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$8.99</span>
+                                                <button onclick="showARPreview()" class="ml-3 text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                                                    <i class="fas fa-cube mr-1"></i>3D View
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dessert Card 2 -->
+                        <div class="bg-card rounded-lg overflow-hidden border border-border">
+                            <div class="flex">
+                                <!-- Classic tiramisu dessert with coffee and cocoa powder -->
+                                <img src="https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200" alt="Tiramisu" class="w-24 h-24 object-cover" data-mock-image="true" />
+                                <div class="flex-1 p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div class="flex-1">
+                                            <h3 class="font-semibold text-card-foreground" data-bind="item.name">Classic Tiramisu</h3>
+                                            <p class="text-sm text-muted-foreground mt-1" data-bind="item.description" data-mock="true">Traditional Italian dessert with espresso and mascarpone</p>
+                                            <div class="flex items-center mt-2">
+                                                <span class="font-bold text-primary" data-bind="item.price">$7.99</span>
+                                                <button onclick="showARPreview()" class="ml-3 text-xs bg-accent text-accent-foreground px-2 py-1 rounded">
+                                                    <i class="fas fa-cube mr-1"></i>3D View
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button onclick="addToCart()" class="ml-3 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <i class="fas fa-plus text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- @END_MAP -->
+            </main>
+            
+            <!-- Floating Cart Button -->
+            <div class="floating-cart">
+                <button onclick="showCart()" class="bg-primary text-primary-foreground rounded-full w-16 h-16 flex items-center justify-center shadow-lg relative" data-event="click:openCart">
+                    <i class="fas fa-shopping-cart text-xl"></i>
+                    <span class="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center" data-bind="cartItemCount" data-mock="true">3</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: AR Preview Modal -->
+        <div id="ar-modal" class="modal-overlay">
+            <div class="bg-card rounded-lg p-6 m-4 max-w-sm w-full">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-card-foreground">3D Preview</h3>
+                    <button onclick="closeARPreview()" class="text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="bg-muted rounded-lg h-48 flex items-center justify-center mb-4">
+                    <!-- @FUNCTIONALITY: AR.js/Three.js 3D model viewer would be implemented here -->
+                    <div class="text-center text-muted-foreground">
+                        <i class="fas fa-cube text-4xl mb-2"></i>
+                        <p class="text-sm">3D Model Loading...</p>
+                        <p class="text-xs mt-2">Rotate and zoom to explore</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="addToCart()" class="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-lg font-medium">
+                        Add to Cart
+                    </button>
+                    <button onclick="closeARPreview()" class="flex-1 bg-secondary text-secondary-foreground py-2 px-4 rounded-lg font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: Shopping Cart Modal -->
+        <div id="cart-modal" class="modal-overlay">
+            <div class="bg-card rounded-lg p-6 m-4 max-w-md w-full max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-card-foreground">Your Order</h3>
+                    <button onclick="closeCart()" class="text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Cart Items -->
+                <div class="space-y-3 mb-6">
+                    <!-- @MAP: cartItems.map(item => ( -->
+                    <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-card-foreground" data-bind="item.name" data-mock="true">Truffle Bruschetta</h4>
+                            <p class="text-sm text-muted-foreground" data-bind="item.price" data-mock="true">$12.99</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="decreaseQuantity()" class="w-8 h-8 bg-background text-foreground rounded-full flex items-center justify-center">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="w-8 text-center text-card-foreground" data-bind="item.quantity" data-mock="true">2</span>
+                            <button onclick="increaseQuantity()" class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-card-foreground" data-bind="item.name" data-mock="true">Grilled Salmon</h4>
+                            <p class="text-sm text-muted-foreground" data-bind="item.price" data-mock="true">$24.99</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="decreaseQuantity()" class="w-8 h-8 bg-background text-foreground rounded-full flex items-center justify-center">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="w-8 text-center text-card-foreground" data-bind="item.quantity" data-mock="true">1</span>
+                            <button onclick="increaseQuantity()" class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- @END_MAP -->
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="border-t border-border pt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-muted-foreground">Subtotal</span>
+                        <span class="text-card-foreground" data-bind="subtotal" data-mock="true">$50.97</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-muted-foreground">Tax (8%)</span>
+                        <span class="text-card-foreground" data-bind="tax" data-mock="true">$4.08</span>
+                    </div>
+                    <div class="flex justify-between font-semibold text-lg border-t border-border pt-2">
+                        <span class="text-card-foreground">Total</span>
+                        <span class="text-primary" data-bind="total" data-mock="true">$55.05</span>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex space-x-3 mt-6">
+                    <button onclick="closeCart()" class="flex-1 bg-secondary text-secondary-foreground py-3 px-4 rounded-lg font-medium">
+                        Continue Shopping
+                    </button>
+                    <button onclick="showCheckout()" class="flex-1 bg-primary text-primary-foreground py-3 px-4 rounded-lg font-medium" data-event="click:proceedToCheckout">
+                        Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: Checkout Page -->
+        <div id="checkout-page" class="hidden min-h-screen bg-background">
+            <header class="border-b border-border p-4">
+                <div class="flex items-center space-x-3">
+                    <button onclick="showMenu()" class="text-muted-foreground hover:text-foreground">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h1 class="text-xl font-semibold text-foreground">Checkout</h1>
+                </div>
+            </header>
+            
+            <div class="p-4 max-w-md mx-auto space-y-6">
+                <!-- Order Summary -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="font-semibold text-card-foreground mb-3">Order Summary</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">Table Number</span>
+                            <span class="text-card-foreground" data-bind="tableNumber" data-mock="true">5</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">Items</span>
+                            <span class="text-card-foreground" data-bind="itemCount" data-mock="true">3 items</span>
+                        </div>
+                        <div class="flex justify-between font-semibold">
+                            <span class="text-card-foreground">Total Amount</span>
+                            <span class="text-primary" data-bind="totalAmount" data-mock="true">$55.05</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="font-semibold text-card-foreground mb-3">Payment Method</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="radio" name="payment" value="cash" checked class="text-primary" data-bind="paymentMethod" />
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-money-bill-wave text-muted-foreground"></i>
+                                <span class="text-card-foreground">Pay with Cash</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="radio" name="payment" value="card" class="text-primary" data-bind="paymentMethod" />
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-credit-card text-muted-foreground"></i>
+                                <span class="text-card-foreground">Pay Online</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Special Instructions -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <label for="instructions" class="block text-sm font-medium text-card-foreground mb-2">Special Instructions (Optional)</label>
+                    <textarea 
+                        id="instructions" 
+                        rows="3" 
+                        placeholder="Any special requests or dietary restrictions..."
+                        class="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground resize-none"
+                        data-bind="specialInstructions"
+                        data-mock="true"
+                    ></textarea>
+                </div>
+                
+                <!-- Place Order Button -->
+                <button onclick="placeOrder()" class="w-full bg-primary text-primary-foreground py-4 px-6 rounded-lg font-semibold text-lg" data-event="click:submitOrder" data-implementation="Validate payment method and submit order to backend">
+                    Place Order - $55.05
+                </button>
+                
+                <!-- Payment Info -->
+                <div class="text-center text-sm text-muted-foreground">
+                    <p>• Cash payment: Pay when the order arrives</p>
+                    <p>• Online payment: Secure checkout with Stripe</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: Order Status Page -->
+        <div id="order-status-page" class="hidden min-h-screen bg-background">
+            <header class="border-b border-border p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showMenu()" class="text-muted-foreground hover:text-foreground">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h1 class="text-xl font-semibold text-foreground">Order Status</h1>
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        Table <span data-bind="tableNumber" data-mock="true">5</span>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="p-4 max-w-md mx-auto space-y-6">
+                <!-- Order Info -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-semibold text-card-foreground">Order #<span data-bind="orderNumber" data-mock="true">1234</span></h3>
+                            <p class="text-sm text-muted-foreground" data-bind="orderTime" data-mock="true">Placed at 2:30 PM</p>
+                        </div>
+                        <span class="bg-chart-3 text-black px-2 py-1 rounded text-xs font-medium" data-bind="currentStatus" data-mock="true">Preparing</span>
+                    </div>
+                </div>
+                
+                <!-- Order Progress -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="font-semibold text-card-foreground mb-4">Order Progress</h3>
+                    <div class="order-status-tracker mb-6">
+                        <div class="status-step completed">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <div class="status-step active">
+                            <i class="fas fa-utensils text-sm"></i>
+                        </div>
+                        <div class="status-step">
+                            <i class="fas fa-bell text-sm"></i>
+                        </div>
+                        <div class="status-step">
+                            <i class="fas fa-check-double text-sm"></i>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-xs text-center">
+                        <div class="text-chart-2">Received</div>
+                        <div class="text-chart-3">Preparing</div>
+                        <div class="text-muted-foreground">Ready</div>
+                        <div class="text-muted-foreground">Served</div>
+                    </div>
+                </div>
+                
+                <!-- Order Items -->
+                <div class="bg-card border border-border rounded-lg p-4">
+                    <h3 class="font-semibold text-card-foreground mb-3">Order Items</h3>
+                    <div class="space-y-2">
+                        <!-- @MAP: orderItems.map(item => ( -->
+                        <div class="flex justify-between text-sm">
+                            <span class="text-card-foreground" data-bind="item.name" data-mock="true">Truffle Bruschetta x2</span>
+                            <span class="text-muted-foreground" data-bind="item.price" data-mock="true">$25.98</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-card-foreground" data-bind="item.name" data-mock="true">Grilled Salmon x1</span>
+                            <span class="text-muted-foreground" data-bind="item.price" data-mock="true">$24.99</span>
+                        </div>
+                        <!-- @END_MAP -->
+                        <div class="border-t border-border pt-2 mt-2">
+                            <div class="flex justify-between font-semibold">
+                                <span class="text-card-foreground">Total</span>
+                                <span class="text-primary" data-bind="orderTotal" data-mock="true">$55.05</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Estimated Time -->
+                <div class="bg-accent border border-border rounded-lg p-4 text-center">
+                    <i class="fas fa-clock text-2xl text-accent-foreground mb-2"></i>
+                    <p class="text-sm text-accent-foreground">Estimated preparation time</p>
+                    <p class="text-xl font-bold text-accent-foreground" data-bind="estimatedTime" data-mock="true">15-20 minutes</p>
+                </div>
+                
+                <!-- Actions -->
+                <div class="space-y-3">
+                    <button onclick="callServer()" class="w-full bg-secondary text-secondary-foreground py-3 px-4 rounded-lg font-medium flex items-center justify-center space-x-2" data-event="click:callServer">
+                        <i class="fas fa-bell"></i>
+                        <span>Call Server</span>
+                    </button>
+                    <button onclick="showMenu()" class="w-full bg-muted text-muted-foreground py-3 px-4 rounded-lg font-medium">
+                        Order More Items
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: Admin Dashboard -->
+        <div id="admin-dashboard" class="hidden min-h-screen bg-background">
+            <!-- Admin Sidebar -->
+            <div class="flex h-screen">
+                <aside class="w-64 bg-sidebar border-r border-sidebar-border">
+                    <div class="p-4 border-b border-sidebar-border">
+                        <h2 class="text-lg font-semibold text-sidebar-foreground">Bistro Admin</h2>
+                        <p class="text-sm text-muted-foreground">Restaurant Dashboard</p>
+                    </div>
+                    <nav class="p-4 space-y-2">
+                        <a href="#" onclick="showAdminSection('orders')" class="admin-nav-link active flex items-center space-x-3 w-full text-left px-3 py-2 rounded-lg bg-sidebar-accent text-sidebar-accent-foreground">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Live Orders</span>
+                        </a>
+                        <a href="#" onclick="showAdminSection('menu')" class="admin-nav-link flex items-center space-x-3 w-full text-left px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                            <i class="fas fa-utensils"></i>
+                            <span>Menu Management</span>
+                        </a>
+                        <a href="#" onclick="showAdminSection('reports')" class="admin-nav-link flex items-center space-x-3 w-full text-left px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Sales Reports</span>
+                        </a>
+                        <a href="#" onclick="showAdminSection('settings')" class="admin-nav-link flex items-center space-x-3 w-full text-left px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </nav>
+                </aside>
+                
+                <!-- Main Content -->
+                <main class="flex-1 overflow-y-auto">
+                    <!-- Live Orders Section -->
+                    <section id="admin-orders" class="admin-section p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h1 class="text-2xl font-bold text-foreground">Live Orders</h1>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-sm text-muted-foreground">Auto-refresh: ON</span>
+                                <div class="w-3 h-3 bg-chart-2 rounded-full"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Cards -->
+                        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            <!-- @MAP: liveOrders.map(order => ( -->
+                            <!-- Order Card 1 -->
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 class="font-semibold text-card-foreground">Table <span data-bind="order.tableNumber" data-mock="true">5</span></h3>
+                                        <p class="text-sm text-muted-foreground" data-bind="order.time" data-mock="true">2:30 PM • Order #1234</p>
+                                    </div>
+                                    <select class="text-xs bg-input border border-border rounded px-2 py-1 text-foreground" data-bind="order.status" data-event="change:updateOrderStatus">
+                                        <option value="received">Received</option>
+                                        <option value="preparing" selected>Preparing</option>
+                                        <option value="ready">Ready</option>
+                                        <option value="served">Served</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1 text-sm mb-3">
+                                    <div class="flex justify-between" data-mock="true">
+                                        <span class="text-card-foreground">Truffle Bruschetta x2</span>
+                                        <span class="text-muted-foreground">$25.98</span>
+                                    </div>
+                                    <div class="flex justify-between" data-mock="true">
+                                        <span class="text-card-foreground">Grilled Salmon x1</span>
+                                        <span class="text-muted-foreground">$24.99</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-border">
+                                    <span class="font-semibold text-primary" data-bind="order.total" data-mock="true">$55.05</span>
+                                    <span class="text-xs text-muted-foreground" data-bind="order.paymentMethod" data-mock="true">Cash</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Order Card 2 -->
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 class="font-semibold text-card-foreground">Table <span data-bind="order.tableNumber" data-mock="true">3</span></h3>
+                                        <p class="text-sm text-muted-foreground" data-bind="order.time" data-mock="true">2:45 PM • Order #1235</p>
+                                    </div>
+                                    <select class="text-xs bg-input border border-border rounded px-2 py-1 text-foreground" data-bind="order.status">
+                                        <option value="received" selected>Received</option>
+                                        <option value="preparing">Preparing</option>
+                                        <option value="ready">Ready</option>
+                                        <option value="served">Served</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1 text-sm mb-3">
+                                    <div class="flex justify-between" data-mock="true">
+                                        <span class="text-card-foreground">Ribeye Steak x1</span>
+                                        <span class="text-muted-foreground">$32.99</span>
+                                    </div>
+                                    <div class="flex justify-between" data-mock="true">
+                                        <span class="text-card-foreground">Signature Cocktail x2</span>
+                                        <span class="text-muted-foreground">$29.98</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-border">
+                                    <span class="font-semibold text-primary" data-bind="order.total" data-mock="true">$67.05</span>
+                                    <span class="text-xs text-muted-foreground" data-bind="order.paymentMethod" data-mock="true">Card</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Order Card 3 -->
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 class="font-semibold text-card-foreground">Table <span data-bind="order.tableNumber" data-mock="true">8</span></h3>
+                                        <p class="text-sm text-muted-foreground" data-bind="order.time" data-mock="true">3:00 PM • Order #1236</p>
+                                    </div>
+                                    <select class="text-xs bg-input border border-border rounded px-2 py-1 text-foreground" data-bind="order.status">
+                                        <option value="received">Received</option>
+                                        <option value="preparing">Preparing</option>
+                                        <option value="ready" selected>Ready</option>
+                                        <option value="served">Served</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-1 text-sm mb-3">
+                                    <div class="flex justify-between" data-mock="true">
+                                        <span class="text-card-foreground">Asian Spring Rolls x1</span>
+                                        <span class="text-muted-foreground">$9.99</span>
+                                    </div>
+                                    <div class="flex justify-between" data-mock="true">
+                                        <span class="text-card-foreground">Chocolate Lava Cake x2</span>
+                                        <span class="text-muted-foreground">$17.98</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center pt-2 border-t border-border">
+                                    <span class="font-semibold text-primary" data-bind="order.total" data-mock="true">$29.87</span>
+                                    <span class="text-xs text-muted-foreground" data-bind="order.paymentMethod" data-mock="true">Cash</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP -->
+                        </div>
+                    </section>
+                    
+                    <!-- Menu Management Section -->
+                    <section id="admin-menu" class="admin-section hidden p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h1 class="text-2xl font-bold text-foreground">Menu Management</h1>
+                            <button onclick="addNewItem()" class="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium flex items-center space-x-2" data-event="click:openAddItemModal">
+                                <i class="fas fa-plus"></i>
+                                <span>Add New Item</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Menu Items Table -->
+                        <div class="bg-card border border-border rounded-lg overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-muted">
+                                        <tr>
+                                            <th class="text-left p-4 text-sm font-medium text-muted-foreground">Item</th>
+                                            <th class="text-left p-4 text-sm font-medium text-muted-foreground">Category</th>
+                                            <th class="text-left p-4 text-sm font-medium text-muted-foreground">Price</th>
+                                            <th class="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
+                                            <th class="text-left p-4 text-sm font-medium text-muted-foreground">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-border">
+                                        <!-- @MAP: menuItems.map(item => ( -->
+                                        <tr>
+                                            <td class="p-4">
+                                                <div class="flex items-center space-x-3">
+                                                    <!-- Truffle bruschetta on plate for admin view -->
+                                                    <img src="https://pixabay.com/get/g1c3ea9bcd780191b5f5a9d809f1cc58a66ef3746eef45aeebdc45b27726d26412fc92bbbe054a357c547df57cc3730fbab345442cdd32069ea766d50493aeefa_1280.jpg" alt="Menu item" class="w-10 h-10 rounded object-cover" data-mock-image="true" />
+                                                    <div>
+                                                        <div class="font-medium text-card-foreground" data-bind="item.name" data-mock="true">Truffle Bruschetta</div>
+                                                        <div class="text-sm text-muted-foreground" data-bind="item.description" data-mock="true">Fresh tomatoes, basil, truffle oil...</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-card-foreground" data-bind="item.category" data-mock="true">Starters</td>
+                                            <td class="p-4 text-card-foreground" data-bind="item.price" data-mock="true">$12.99</td>
+                                            <td class="p-4">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-chart-2 text-white" data-bind="item.status" data-mock="true">Active</span>
+                                            </td>
+                                            <td class="p-4">
+                                                <div class="flex items-center space-x-2">
+                                                    <button onclick="editItem()" class="text-muted-foreground hover:text-foreground" data-event="click:editMenuItem">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button onclick="deleteItem()" class="text-destructive hover:text-destructive/80" data-event="click:deleteMenuItem">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-4">
+                                                <div class="flex items-center space-x-3">
+                                                    <!-- Grilled salmon for admin view -->
+                                                    <img src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?ixlib=rb-4.0.3&auto=format&fit=crop&w=60&h=60" alt="Menu item" class="w-10 h-10 rounded object-cover" data-mock-image="true" />
+                                                    <div>
+                                                        <div class="font-medium text-card-foreground" data-bind="item.name" data-mock="true">Grilled Salmon</div>
+                                                        <div class="text-sm text-muted-foreground" data-bind="item.description" data-mock="true">Atlantic salmon with seasonal vegetables...</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-card-foreground" data-bind="item.category" data-mock="true">Main Course</td>
+                                            <td class="p-4 text-card-foreground" data-bind="item.price" data-mock="true">$24.99</td>
+                                            <td class="p-4">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-chart-2 text-white" data-bind="item.status" data-mock="true">Active</span>
+                                            </td>
+                                            <td class="p-4">
+                                                <div class="flex items-center space-x-2">
+                                                    <button onclick="editItem()" class="text-muted-foreground hover:text-foreground">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button onclick="deleteItem()" class="text-destructive hover:text-destructive/80">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- @END_MAP -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Sales Reports Section -->
+                    <section id="admin-reports" class="admin-section hidden p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h1 class="text-2xl font-bold text-foreground">Sales Reports</h1>
+                            <select class="bg-input border border-border rounded-lg px-3 py-2 text-foreground">
+                                <option>Today</option>
+                                <option>This Week</option>
+                                <option>This Month</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-muted-foreground">Total Sales</p>
+                                        <p class="text-2xl font-bold text-card-foreground" data-bind="stats.totalSales" data-mock="true">$1,248.50</p>
+                                    </div>
+                                    <i class="fas fa-dollar-sign text-2xl text-chart-1"></i>
+                                </div>
+                            </div>
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-muted-foreground">Orders</p>
+                                        <p class="text-2xl font-bold text-card-foreground" data-bind="stats.totalOrders" data-mock="true">47</p>
+                                    </div>
+                                    <i class="fas fa-receipt text-2xl text-chart-2"></i>
+                                </div>
+                            </div>
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-muted-foreground">Avg Order</p>
+                                        <p class="text-2xl font-bold text-card-foreground" data-bind="stats.avgOrder" data-mock="true">$26.54</p>
+                                    </div>
+                                    <i class="fas fa-chart-line text-2xl text-chart-3"></i>
+                                </div>
+                            </div>
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-muted-foreground">Tables Served</p>
+                                        <p class="text-2xl font-bold text-card-foreground" data-bind="stats.tablesServed" data-mock="true">23</p>
+                                    </div>
+                                    <i class="fas fa-table text-2xl text-chart-4"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Charts Placeholder -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <h3 class="font-semibold text-card-foreground mb-4">Sales by Hour</h3>
+                                <div class="h-64 bg-muted rounded flex items-center justify-center">
+                                    <!-- @FUNCTIONALITY: Chart.js implementation would go here -->
+                                    <p class="text-muted-foreground">Chart Placeholder</p>
+                                </div>
+                            </div>
+                            <div class="bg-card border border-border rounded-lg p-4">
+                                <h3 class="font-semibold text-card-foreground mb-4">Popular Items</h3>
+                                <div class="h-64 bg-muted rounded flex items-center justify-center">
+                                    <!-- @FUNCTIONALITY: Chart.js implementation would go here -->
+                                    <p class="text-muted-foreground">Chart Placeholder</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+        
+    </div>
+    <!-- @END_COMPONENT: App Container -->
+    
+    <script>
+        // @STATE: currentPage:string = 'qr-landing'
+        // @STATE: currentTableNumber:number = null
+        // @STATE: cartItems:array = []
+        // @STATE: currentOrder:object = null
+        
+        (function() {
+            // Navigation functions
+            window.showMenu = function() {
+                const tableNumber = document.getElementById('table-number').value;
+                if (!tableNumber || tableNumber < 1 || tableNumber > 20) {
+                    alert('Please enter a valid table number (1-20)');
+                    return;
+                }
+                
+                document.getElementById('qr-landing').classList.add('hidden');
+                document.getElementById('menu-page').classList.remove('hidden');
+                // TODO: Store table number in state management
+            };
+            
+            window.showCart = function() {
+                document.getElementById('cart-modal').classList.add('active');
+                // TODO: Update cart display with current items
+            };
+            
+            window.closeCart = function() {
+                document.getElementById('cart-modal').classList.remove('active');
+            };
+            
+            window.showCheckout = function() {
+                document.getElementById('cart-modal').classList.remove('active');
+                document.getElementById('menu-page').classList.add('hidden');
+                document.getElementById('checkout-page').classList.remove('hidden');
+                // TODO: Populate checkout with cart data
+            };
+            
+            window.showOrderStatus = function() {
+                document.getElementById('menu-page').classList.add('hidden');
+                document.getElementById('order-status-page').classList.remove('hidden');
+                // TODO: Fetch current order status from backend
+            };
+            
+            window.showAdminDashboard = function() {
+                document.getElementById('menu-page').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+            };
+            
+            // AR Preview functions
+            window.showARPreview = function() {
+                document.getElementById('ar-modal').classList.add('active');
+                // TODO: Initialize AR.js/Three.js 3D model viewer
+            };
+            
+            window.closeARPreview = function() {
+                document.getElementById('ar-modal').classList.remove('active');
+            };
+            
+            // Cart functions
+            window.addToCart = function() {
+                // TODO: Implement add to cart functionality
+                console.log('Adding item to cart...');
+                // Update cart badge
+                const badge = document.querySelector('.floating-cart span');
+                if (badge) {
+                    const current = parseInt(badge.textContent) || 0;
+                    badge.textContent = current + 1;
+                }
+            };
+            
+            window.increaseQuantity = function() {
+                // TODO: Implement quantity increase
+                console.log('Increasing quantity...');
+            };
+            
+            window.decreaseQuantity = function() {
+                // TODO: Implement quantity decrease
+                console.log('Decreasing quantity...');
+            };
+            
+            // Order functions
+            window.placeOrder = function() {
+                const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+                const instructions = document.getElementById('instructions').value;
+                
+                // TODO: Submit order to backend
+                console.log('Placing order...', { paymentMethod, instructions });
+                
+                // Redirect to order status
+                document.getElementById('checkout-page').classList.add('hidden');
+                document.getElementById('order-status-page').classList.remove('hidden');
+            };
+            
+            window.callServer = function() {
+                // TODO: Implement server call functionality
+                alert('Server has been notified. They will be with you shortly.');
+            };
+            
+            // Category filtering
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('category-btn')) {
+                    // Update active state
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        btn.classList.remove('active', 'bg-primary', 'text-primary-foreground');
+                        btn.classList.add('bg-muted', 'text-muted-foreground');
+                    });
+                    
+                    e.target.classList.add('active', 'bg-primary', 'text-primary-foreground');
+                    e.target.classList.remove('bg-muted', 'text-muted-foreground');
+                    
+                    // TODO: Filter menu items by category
+                    const category = e.target.getAttribute('data-category');
+                    console.log('Filtering by category:', category);
+                }
+            });
+            
+            // Admin functions
+            window.showAdminSection = function(section) {
+                // Hide all sections
+                document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+                
+                // Show selected section
+                document.getElementById('admin-' + section).classList.remove('hidden');
+                
+                // Update navigation
+                document.querySelectorAll('.admin-nav-link').forEach(link => {
+                    link.classList.remove('active', 'bg-sidebar-accent', 'text-sidebar-accent-foreground');
+                    link.classList.add('text-sidebar-foreground');
+                });
+                
+                event.target.classList.add('active', 'bg-sidebar-accent', 'text-sidebar-accent-foreground');
+                event.target.classList.remove('text-sidebar-foreground');
+            };
+            
+            window.addNewItem = function() {
+                // TODO: Open add new menu item modal
+                console.log('Opening add new item modal...');
+            };
+            
+            window.editItem = function() {
+                // TODO: Open edit menu item modal
+                console.log('Opening edit item modal...');
+            };
+            
+            window.deleteItem = function() {
+                // TODO: Confirm and delete menu item
+                if (confirm('Are you sure you want to delete this item?')) {
+                    console.log('Deleting item...');
+                }
+            };
+            
+            // Initialize admin dashboard for demo
+            window.addEventListener('load', function() {
+                // Uncomment the line below to start with admin dashboard for demo
+                // showAdminDashboard();
+            });
+            
+            // Auto-refresh for admin orders (demo)
+            setInterval(function() {
+                if (!document.getElementById('admin-dashboard').classList.contains('hidden')) {
+                    // TODO: Fetch latest orders from backend
+                    console.log('Auto-refreshing orders...');
+                }
+            }, 30000); // Refresh every 30 seconds
+            
+        })();
+    </script>
+</body>
+</html>

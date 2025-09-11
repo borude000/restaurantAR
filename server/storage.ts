@@ -45,6 +45,7 @@ export interface IStorage {
   getOrderByNumber(orderNumber: string): Promise<OrderWithItems | undefined>;
   createOrder(order: InsertOrder, orderItems: InsertOrderItem[]): Promise<OrderWithItems>;
   updateOrderStatus(id: string, status: string): Promise<Order>;
+  updateOrderPaymentStatus(id: string, paymentStatus: string): Promise<Order>;
   getOrdersByTable(tableNumber: number): Promise<OrderWithItems[]>;
 
   // Analytics
@@ -54,6 +55,8 @@ export interface IStorage {
     avgOrder: number;
     tablesServed: number;
   }>;
+  getSalesByHour(): Promise<Array<{ hour: number; sales: number; orders: number }>>;
+  getPopularItems(): Promise<Array<{ name: string; quantity: number; revenue: number }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -275,7 +278,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       // Fetch menu items for the created order items
-      const menuItemIds = items.map(item => item.menuItemId).filter(Boolean);
+      const menuItemIds = items.map(item => item.menuItemId).filter((id): id is string => Boolean(id));
       const menuItemsData = await tx
         .select()
         .from(menuItems)
@@ -297,6 +300,15 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateOrderPaymentStatus(id: string, paymentStatus: string): Promise<Order> {
+    const [updated] = await db
+      .update(orders)
+      .set({ paymentStatus, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
     return updated;
@@ -362,6 +374,67 @@ export class DatabaseStorage implements IStorage {
       avgOrder: Number(stats[0].avgOrder),
       tablesServed: Number(stats[0].tablesServed),
     };
+  }
+
+  async getSalesByHour(): Promise<Array<{ hour: number; sales: number; orders: number }>> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const hourlyStats = await db
+      .select({
+        hour: sql<number>`EXTRACT(HOUR FROM ${orders.createdAt})`,
+        sales: sql<number>`COALESCE(SUM(${orders.totalAmount}), 0)`,
+        orders: sql<number>`COUNT(*)`,
+      })
+      .from(orders)
+      .where(sql`${orders.createdAt} >= ${today}`)
+      .groupBy(sql`EXTRACT(HOUR FROM ${orders.createdAt})`)
+      .orderBy(sql`EXTRACT(HOUR FROM ${orders.createdAt})`);
+
+    // Fill in missing hours with 0 values
+    const allHours = Array.from({ length: 24 }, (_, i) => ({
+      hour: i,
+      sales: 0,
+      orders: 0,
+    }));
+
+    hourlyStats.forEach(stat => {
+      const hourIndex = Number(stat.hour);
+      if (hourIndex >= 0 && hourIndex < 24) {
+        allHours[hourIndex] = {
+          hour: hourIndex,
+          sales: Number(stat.sales),
+          orders: Number(stat.orders),
+        };
+      }
+    });
+
+    return allHours;
+  }
+
+  async getPopularItems(): Promise<Array<{ name: string; quantity: number; revenue: number }>> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const popularItems = await db
+      .select({
+        name: menuItems.name,
+        quantity: sql<number>`COALESCE(SUM(${orderItems.quantity}), 0)`,
+        revenue: sql<number>`COALESCE(SUM(${orderItems.totalPrice}), 0)`,
+      })
+      .from(orderItems)
+      .leftJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))
+      .leftJoin(orders, eq(orderItems.orderId, orders.id))
+      .where(sql`${orders.createdAt} >= ${today}`)
+      .groupBy(menuItems.id, menuItems.name)
+      .orderBy(sql`SUM(${orderItems.quantity}) DESC`)
+      .limit(10);
+
+    return popularItems.map(item => ({
+      name: item.name || 'Unknown Item',
+      quantity: Number(item.quantity),
+      revenue: Number(item.revenue),
+    }));
   }
 }
 

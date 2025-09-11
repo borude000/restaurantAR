@@ -152,3 +152,21 @@
     display: none;
   }
 }
+
+@layer utilities {
+  @keyframes floaty {
+    0% { transform: translateY(0px) translateX(0px) scale(1); }
+    25% { transform: translateY(-10px) translateX(5px) scale(1.02); }
+    50% { transform: translateY(0px) translateX(10px) scale(1); }
+    75% { transform: translateY(10px) translateX(5px) scale(0.98); }
+    100% { transform: translateY(0px) translateX(0px) scale(1); }
+  }
+
+  .animate-float-slow {
+    animation: floaty 12s ease-in-out infinite;
+  }
+
+  .animate-float-slower {
+    animation: floaty 18s ease-in-out infinite;
+  }
+}

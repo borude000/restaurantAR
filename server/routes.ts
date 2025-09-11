@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { z } from "zod";
+import session from "express-session";
+import crypto from "crypto";
 
 const createOrderRequestSchema = z.object({
   tableNumber: z.number().min(1).max(100),
@@ -15,7 +17,61 @@ const createOrderRequestSchema = z.object({
   specialInstructions: z.string().optional(),
 });
 
+const adminLoginSchema = z.object({
+  password: z.string().min(1),
+});
+
+// Admin password - in production, this should be stored securely
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
+// Middleware to check admin authentication
+const requireAdminAuth = (req: any, res: any, next: any) => {
+  if (req.session?.isAdmin) {
+    next();
+  } else {
+    res.status(401).json({ message: "Admin authentication required" });
+  }
+};
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Admin Authentication API
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { password } = adminLoginSchema.parse(req.body);
+      
+      if (password === ADMIN_PASSWORD) {
+        (req.session as any).isAdmin = true;
+        res.json({ success: true, message: "Login successful" });
+      } else {
+        res.status(401).json({ success: false, message: "Invalid password" });
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid request data", 
+          errors: error.errors 
+        });
+      }
+      console.error("Error during admin login:", error);
+      res.status(500).json({ success: false, message: "Login failed" });
+    }
+  });
+
+  app.post("/api/admin/logout", (req, res) => {
+    req.session?.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+        return res.status(500).json({ success: false, message: "Logout failed" });
+      }
+      res.json({ success: true, message: "Logout successful" });
+    });
+  });
+
+  app.get("/api/admin/status", (req, res) => {
+    res.json({ isAuthenticated: !!(req.session as any)?.isAdmin });
+  });
+
   // Categories API
   app.get("/api/categories", async (req, res) => {
     try {
@@ -167,8 +223,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics API
-  app.get("/api/analytics/today", async (req, res) => {
+  app.patch("/api/orders/:id/payment", requireAdminAuth, async (req, res) => {
+    try {
+      const { paymentStatus } = req.body;
+      console.log("Payment update request:", { orderId: req.params.id, paymentStatus });
+      
+      if (!paymentStatus || typeof paymentStatus !== 'string') {
+        return res.status(400).json({ message: "Invalid payment status" });
+      }
+      
+      const updatedOrder = await storage.updateOrderPaymentStatus(req.params.id, paymentStatus);
+      console.log("Payment update successful:", updatedOrder);
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      res.status(500).json({ message: "Failed to update payment status" });
+    }
+  });
+
+  // Analytics API (protected)
+  app.get("/api/analytics/today", requireAdminAuth, async (req, res) => {
     try {
       const stats = await storage.getTodayStats();
       res.json(stats);
@@ -178,8 +252,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin Menu Management API
-  app.post("/api/admin/menu-items", async (req, res) => {
+  app.get("/api/analytics/sales-by-hour", requireAdminAuth, async (req, res) => {
+    try {
+      const salesByHour = await storage.getSalesByHour();
+      res.json(salesByHour);
+    } catch (error) {
+      console.error("Error fetching sales by hour:", error);
+      res.status(500).json({ message: "Failed to fetch sales by hour" });
+    }
+  });
+
+  app.get("/api/analytics/popular-items", requireAdminAuth, async (req, res) => {
+    try {
+      const popularItems = await storage.getPopularItems();
+      res.json(popularItems);
+    } catch (error) {
+      console.error("Error fetching popular items:", error);
+      res.status(500).json({ message: "Failed to fetch popular items" });
+    }
+  });
+
+  // Admin Menu Management API (protected)
+  app.post("/api/admin/menu-items", requireAdminAuth, async (req, res) => {
     try {
       const menuItem = await storage.createMenuItem(req.body);
       res.status(201).json(menuItem);
@@ -189,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/menu-items/:id", async (req, res) => {
+  app.put("/api/admin/menu-items/:id", requireAdminAuth, async (req, res) => {
     try {
       const menuItem = await storage.updateMenuItem(req.params.id, req.body);
       res.json(menuItem);
@@ -199,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/menu-items/:id", async (req, res) => {
+  app.delete("/api/admin/menu-items/:id", requireAdminAuth, async (req, res) => {
     try {
       await storage.deleteMenuItem(req.params.id);
       res.status(204).send();
@@ -209,8 +303,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Category management API
-  app.post("/api/admin/categories", async (req, res) => {
+  // Category management API (protected)
+  app.post("/api/admin/categories", requireAdminAuth, async (req, res) => {
     try {
       const category = await storage.createCategory(req.body);
       res.status(201).json(category);
@@ -220,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/categories/:id", async (req, res) => {
+  app.put("/api/admin/categories/:id", requireAdminAuth, async (req, res) => {
     try {
       const category = await storage.updateCategory(req.params.id, req.body);
       res.json(category);
@@ -230,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/categories/:id", async (req, res) => {
+  app.delete("/api/admin/categories/:id", requireAdminAuth, async (req, res) => {
     try {
       await storage.deleteCategory(req.params.id);
       res.status(204).send();

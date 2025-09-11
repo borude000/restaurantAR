@@ -15,10 +15,11 @@ import {
   TrendingUp,
   Users
 } from "lucide-react";
-import { useOrders, useUpdateOrderStatus } from "@/hooks/use-orders";
+import { useOrders, useUpdateOrderStatus, useUpdatePaymentStatus, useTodayStats, useSalesByHour, usePopularItems } from "@/hooks/use-orders";
 import { useToast } from "@/hooks/use-toast";
 import MenuManagement from "@/components/menu-management";
 import type { OrderWithItems } from "@shared/schema";
+import { FadeIn, SlideUp, Stagger, StaggerItem, TapScale } from "@/components/ui/motion";
 
 interface DashboardStats {
   totalSales: number;
@@ -31,11 +32,12 @@ export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("orders");
   const { data: orders = [], isLoading: ordersLoading } = useOrders();
   const updateOrderStatus = useUpdateOrderStatus();
+  const updatePaymentStatus = useUpdatePaymentStatus();
   const { toast } = useToast();
 
-  const { data: stats } = useQuery<DashboardStats>({
-    queryKey: ["/api/analytics/today"],
-  });
+  const { data: stats } = useTodayStats();
+  const { data: salesByHour = [] } = useSalesByHour();
+  const { data: popularItems = [] } = usePopularItems();
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
@@ -53,6 +55,22 @@ export default function AdminDashboard() {
     }
   };
 
+  const handlePaymentUpdate = async (orderId: string, newPaymentStatus: string) => {
+    try {
+      await updatePaymentStatus.mutateAsync({ orderId, paymentStatus: newPaymentStatus });
+      toast({
+        title: "Payment Updated",
+        description: "Payment status has been updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update payment status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "received": return "bg-blue-500";
@@ -64,67 +82,72 @@ export default function AdminDashboard() {
   };
 
   const OrderCard = ({ order }: { order: OrderWithItems }) => (
-    <Card key={order.id} className="mb-4">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <h3 className="font-semibold text-card-foreground" data-testid={`text-order-table-${order.id}`}>
-              Table {order.tableNumber}
-            </h3>
-            <p className="text-sm text-muted-foreground" data-testid={`text-order-time-${order.id}`}>
-              {order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : 'Unknown time'} • #{order.orderNumber}
-            </p>
-          </div>
-          <Select
-            value={order.status}
-            onValueChange={(value) => handleStatusUpdate(order.id, value)}
-            data-testid={`select-order-status-${order.id}`}
-          >
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="received">Received</SelectItem>
-              <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="ready">Ready</SelectItem>
-              <SelectItem value="served">Served</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="space-y-1 text-sm mb-3">
-          {order.orderItems.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <span className="text-card-foreground">
-                {item.menuItem.name} x{item.quantity}
-              </span>
-              <span className="text-muted-foreground">${item.totalPrice}</span>
+    <TapScale>
+      <Card key={order.id} className="mb-4 shadow-sm hover:shadow-md transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h3 className="font-semibold text-card-foreground" data-testid={`text-order-table-${order.id}`}>
+                Table {order.tableNumber}
+              </h3>
+              <p className="text-sm text-muted-foreground" data-testid={`text-order-time-${order.id}`}>
+                {order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : 'Unknown time'} • #{order.orderNumber}
+              </p>
             </div>
-          ))}
-        </div>
-        
-        <div className="flex justify-between items-center pt-2 border-t border-border">
-          <span className="font-semibold text-primary" data-testid={`text-order-total-${order.id}`}>
-            ${order.totalAmount}
-          </span>
-          <Badge variant="outline" data-testid={`badge-payment-method-${order.id}`}>
-            {order.paymentMethod}
-          </Badge>
-        </div>
-      </CardContent>
-    </Card>
+            <Select
+              value={order.status}
+              onValueChange={(value) => handleStatusUpdate(order.id, value)}
+              data-testid={`select-order-status-${order.id}`}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="received">Received</SelectItem>
+                <SelectItem value="preparing">Preparing</SelectItem>
+                <SelectItem value="ready">Ready</SelectItem>
+                <SelectItem value="served">Served</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-1 text-sm mb-3">
+            {order.orderItems.map((item) => (
+              <div key={item.id} className="flex justify-between">
+                <span className="text-card-foreground">
+                  {item.menuItem.name} x{item.quantity}
+                </span>
+                <span className="text-muted-foreground">${item.totalPrice}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-between items-center pt-2 border-t border-border">
+            <span className="font-semibold text-primary" data-testid={`text-order-total-${order.id}`}>
+              ${order.totalAmount}
+            </span>
+            <Badge variant="outline" data-testid={`badge-payment-method-${order.id}`}>
+              {order.paymentMethod}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+    </TapScale>
   );
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b border-border">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold text-foreground">Bistro Admin Dashboard</h1>
-          <p className="text-muted-foreground">Restaurant Management System</p>
+      <SlideUp>
+        <div className="border-b border-border">
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-foreground">Bistro Admin Dashboard</h1>
+            <p className="text-muted-foreground">Restaurant Management System</p>
+          </div>
         </div>
-      </div>
+      </SlideUp>
 
       <div className="p-6">
+        <FadeIn>
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="orders" className="flex items-center space-x-2" data-testid="tab-orders">
@@ -168,18 +191,22 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Stagger className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {orders
                   .filter(order => order.status !== "served")
                   .map(order => (
-                    <OrderCard key={order.id} order={order} />
+                    <StaggerItem key={order.id}>
+                      <OrderCard order={order} />
+                    </StaggerItem>
                   ))}
-              </div>
+              </Stagger>
             )}
           </TabsContent>
 
           <TabsContent value="menu" className="mt-6">
-            <MenuManagement />
+            <SlideUp>
+              <MenuManagement />
+            </SlideUp>
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
@@ -187,6 +214,7 @@ export default function AdminDashboard() {
 
             {stats && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <SlideUp>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
@@ -198,7 +226,9 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+                </SlideUp>
 
+                <SlideUp>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Orders</CardTitle>
@@ -210,7 +240,9 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+                </SlideUp>
 
+                <SlideUp>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Avg Order</CardTitle>
@@ -222,7 +254,9 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+                </SlideUp>
 
+                <SlideUp>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Tables Served</CardTitle>
@@ -234,10 +268,12 @@ export default function AdminDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+                </SlideUp>
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <SlideUp>
               <Card>
                 <CardHeader>
                   <CardTitle>Sales by Hour</CardTitle>
@@ -248,7 +284,9 @@ export default function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
+              </SlideUp>
 
+              <SlideUp>
               <Card>
                 <CardHeader>
                   <CardTitle>Popular Items</CardTitle>
@@ -259,19 +297,95 @@ export default function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
+              </SlideUp>
             </div>
+
+            {/* Order History Section */}
+            <SlideUp>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Order History (Served Orders)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {orders.filter(order => order.status === "served").length === 0 ? (
+                    <div className="text-center py-8">
+                      <Receipt size={48} className="mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">No Completed Orders</h3>
+                      <p className="text-muted-foreground">Completed orders will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      {orders
+                        .filter(order => order.status === "served")
+                        .map(order => (
+                          <TapScale key={order.id}>
+                            <div className="border border-border rounded-lg p-4 bg-muted/50">
+                              <div className="flex justify-between items-start mb-3">
+                                <div>
+                                  <h4 className="font-semibold text-card-foreground">
+                                    Table {order.tableNumber} • #{order.orderNumber}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Unknown time'}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-semibold text-primary">${order.totalAmount}</div>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {order.paymentMethod}
+                                    </Badge>
+                                    {order.paymentMethod === "cash" && (
+                                      <Select
+                                        value={order.paymentStatus || "pending"}
+                                        onValueChange={(value) => handlePaymentUpdate(order.id, value)}
+                                      >
+                                        <SelectTrigger className="w-28 h-6 text-xs">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="pending">Bill Pending</SelectItem>
+                                          <SelectItem value="paid">Paid</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-1 text-sm">
+                                {order.orderItems.map((item) => (
+                                  <div key={item.id} className="flex justify-between">
+                                    <span className="text-card-foreground">
+                                      {item.menuItem.name} x{item.quantity}
+                                    </span>
+                                    <span className="text-muted-foreground">${item.totalPrice}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </TapScale>
+                        ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </SlideUp>
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Settings size={48} className="mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Settings</h3>
-                <p className="text-muted-foreground">Settings panel will be available in the next update.</p>
-              </CardContent>
-            </Card>
+            <SlideUp>
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Settings size={48} className="mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Settings</h3>
+                  <p className="text-muted-foreground">Settings panel will be available in the next update.</p>
+                </CardContent>
+              </Card>
+            </SlideUp>
           </TabsContent>
         </Tabs>
+        </FadeIn>
       </div>
     </div>
   );

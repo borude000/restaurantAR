@@ -8,8 +8,9 @@ import Landing from "@/pages/landing";
 import Menu from "@/pages/menu";
 import Checkout from "@/pages/checkout";
 import OrderStatus from "@/pages/order-status";
-import AdminDashboard from "@/pages/admin-dashboard";
+import AdminProtected from "@/pages/admin-protected";
 import NotFound from "@/pages/not-found";
+import { ThemeProvider } from "next-themes";
 
 function Router() {
   return (
@@ -18,7 +19,7 @@ function Router() {
       <Route path="/menu" component={Menu} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/order-status/:orderNumber" component={OrderStatus} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin" component={AdminProtected} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -27,12 +28,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <CartProvider>
-          <Toaster />
-          <Router />
-        </CartProvider>
-      </TooltipProvider>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <TooltipProvider>
+          <CartProvider>
+            <Toaster />
+            <Router />
+          </CartProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

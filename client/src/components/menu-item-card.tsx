@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import MenuItem3DModal from "./menu-item-3d-modal";
 import type { MenuItemWithCategory } from "@shared/schema";
+import { TapScale } from "@/components/ui/motion";
 
 interface MenuItemCardProps {
   item: MenuItemWithCategory;
@@ -30,29 +31,41 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden border border-border" data-testid={`card-menu-item-${item.id}`}>
+    <Card
+      className="group overflow-hidden border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow"
+      data-testid={`card-menu-item-${item.id}`}
+    >
       <div className="flex">
         {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt={item.name}
-            className="w-24 h-24 object-cover"
-            data-testid={`img-menu-item-${item.id}`}
-          />
+          <div className="w-28 h-28 overflow-hidden">
+            <img
+              src={item.imageUrl}
+              alt={item.name}
+              className="w-28 h-28 object-cover transition-transform duration-300 group-hover:scale-105"
+              data-testid={`img-menu-item-${item.id}`}
+            />
+          </div>
         ) : (
-          <div className="w-24 h-24 bg-muted flex items-center justify-center">
+          <div className="w-28 h-28 bg-muted flex items-center justify-center">
             <span className="text-xs text-muted-foreground">No Image</span>
           </div>
         )}
-        
+
         <div className="flex-1 p-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <h3 className="font-semibold text-card-foreground" data-testid={`text-item-name-${item.id}`}>
-                {item.name}
-              </h3>
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-card-foreground truncate" data-testid={`text-item-name-${item.id}`}>
+                  {item.name}
+                </h3>
+                {item.category?.name && (
+                  <Badge variant="outline" className="text-[10px] py-0.5 px-1.5">
+                    {item.category.name}
+                  </Badge>
+                )}
+              </div>
               {item.description && (
-                <p className="text-sm text-muted-foreground mt-1" data-testid={`text-item-description-${item.id}`}>
+                <p className="text-sm text-muted-foreground line-clamp-2" data-testid={`text-item-description-${item.id}`}>
                   {item.description}
                 </p>
               )}
@@ -61,37 +74,37 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                   ${Number(item.price).toFixed(2)}
                 </span>
                 {item.modelUrl && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handlePreview}
-                    className="text-xs"
-                    data-testid={`button-3d-preview-${item.id}`}
-                  >
-                    3D View
-                  </Button>
+                  <TapScale>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handlePreview}
+                      className="text-xs"
+                      data-testid={`button-3d-preview-${item.id}`}
+                    >
+                      3D View
+                    </Button>
+                  </TapScale>
                 )}
               </div>
             </div>
-            
-            <Button
-              size="icon"
-              onClick={handleAddToCart}
-              className="ml-3 h-8 w-8 rounded-full"
-              data-testid={`button-add-to-cart-${item.id}`}
-            >
-              <Plus size={16} />
-            </Button>
+
+            <TapScale>
+              <Button
+                size="icon"
+                onClick={handleAddToCart}
+                className="ml-1 h-8 w-8 rounded-full"
+                data-testid={`button-add-to-cart-${item.id}`}
+              >
+                <Plus size={16} />
+              </Button>
+            </TapScale>
           </div>
         </div>
       </div>
-      
+
       {/* 3D Modal */}
-      <MenuItem3DModal 
-        item={item}
-        open={show3D}
-        onOpenChange={setShow3D}
-      />
+      <MenuItem3DModal item={item} open={show3D} onOpenChange={setShow3D} />
     </Card>
   );
 }

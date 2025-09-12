@@ -8,6 +8,20 @@ interface ModelViewerProps {
   src: string;
   alt: string;
   className?: string;
+  /**
+   * Prefetch the model file and feed it to <model-viewer> via a Blob URL.
+   * Helps avoid double-fetching and leverages the browser cache for faster first paint.
+   * Enabled by default.
+   */
+  prefetch?: boolean;
+  /**
+   * iOS-specific USDZ source for Quick Look. If provided, we set the `ios-src` attribute.
+   */
+  iosSrc?: string;
+  /**
+   * Lazily load the model only when the component is in view. Default: true
+   */
+  lazy?: boolean;
 }
 
 // Extend the HTMLElement interface to include model-viewer
@@ -19,12 +33,77 @@ declare global {
   }
 }
 
-export default function ModelViewer({ src, alt, className = "" }: ModelViewerProps) {
+export default function ModelViewer({ src, alt, className = "", prefetch = true, iosSrc, lazy = true }: ModelViewerProps) {
   const modelRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isARMode, setIsARMode] = useState(false);
   const [progress, setProgress] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedSrc, setResolvedSrc] = useState<string>(src);
+  const objectUrlRef = useRef<string | null>(null);
+  const [isInView, setIsInView] = useState<boolean>(!lazy);
+
+  // Observe visibility for lazy loading
+  useEffect(() => {
+    if (!lazy) return;
+    const node = containerRef.current;
+    if (!node) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setIsInView(true);
+            obs.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [lazy]);
+
+  useEffect(() => {
+    // Prefetch and convert to blob URL for potentially faster initial show
+    let aborted = false;
+    const controller = new AbortController();
+    async function prefetchModel() {
+      try {
+        // Only prefetch http(s) resources
+        const isHttp = /^(https?:)?\/\//i.test(src);
+        if (!prefetch || !isHttp || (lazy && !isInView)) {
+          setResolvedSrc(src);
+          return;
+        }
+        // Use browser cache aggressively
+        const res = await fetch(src, { signal: controller.signal, cache: "force-cache" });
+        if (!res.ok) throw new Error(`Failed to fetch model: ${res.status}`);
+        const blob = await res.blob();
+        if (aborted) return;
+        // Revoke previous object URL
+        if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+        const objUrl = URL.createObjectURL(blob);
+        objectUrlRef.current = objUrl;
+        setResolvedSrc(objUrl);
+      } catch (e: any) {
+        // Fall back to original src on failure
+        console.warn("Model prefetch failed, falling back to direct src:", e);
+        setResolvedSrc(src);
+      }
+    }
+    prefetchModel();
+
+    return () => {
+      aborted = true;
+      controller.abort();
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+    };
+  }, [src, prefetch, isInView, lazy]);
 
   useEffect(() => {
     // Attach model-viewer events for progress and error diagnostics
@@ -64,7 +143,18 @@ export default function ModelViewer({ src, alt, className = "" }: ModelViewerPro
       el.removeEventListener("load", onLoad);
       el.removeEventListener("error", onError);
     };
-  }, [src]);
+  }, [resolvedSrc]);
+
+  // Apply ios-src dynamically when provided
+  useEffect(() => {
+    const el = modelRef.current as any | null;
+    if (!el) return;
+    if (iosSrc) {
+      el.setAttribute('ios-src', iosSrc);
+    } else {
+      el.removeAttribute?.('ios-src');
+    }
+  }, [iosSrc]);
 
 
   const handleARClick = () => {
@@ -79,16 +169,17 @@ export default function ModelViewer({ src, alt, className = "" }: ModelViewerPro
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative ${className}`}>
       <model-viewer
         ref={modelRef}
-        src={src}
+        src={resolvedSrc}
         alt={alt}
         auto-rotate
         camera-controls
         ar
         ar-modes="webxr scene-viewer quick-look"
-        loading="lazy"
+        loading="eager"
+        reveal="auto"
         environment-image="neutral"
         poster="https://modelviewer.dev/shared-assets/models/Astronaut.webp"
         shadow-intensity="1"

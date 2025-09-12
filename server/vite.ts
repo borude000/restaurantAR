@@ -76,6 +76,29 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Set long-term cache headers for heavy/static assets (models, textures)
+  app.use((req, res, next) => {
+    // Normalize url path (no query string)
+    const url = req.path || "";
+    // One-year caching for binary model assets and textures
+    const longCacheExts = [
+      ".glb",
+      ".gltf",
+      ".usdz",
+      ".bin",
+      ".ktx2",
+      ".hdr",
+      ".env",
+    ];
+    // Heuristic: hashed assets (e.g. file.abc123.js) can also be immutable
+    const isHashed = /\.[a-f0-9]{8,}\./i.test(url);
+    const ext = path.extname(url).toLowerCase();
+    if (longCacheExts.includes(ext) || isHashed) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    }
+    next();
+  });
+
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist

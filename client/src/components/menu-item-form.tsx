@@ -34,6 +34,15 @@ export default function MenuItemForm({ open, onOpenChange, editItem }: MenuItemF
     queryKey: ["/api/categories"],
   });
 
+  // Fetch available model files from server (scans public models directories)
+  const { data: modelFiles = [] } = useQuery<string[]>({
+    queryKey: ["/api/admin/model-files"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/admin/model-files");
+      return res.json();
+    },
+  });
+
   const form = useForm<z.infer<typeof menuItemFormSchema>>({
     resolver: zodResolver(menuItemFormSchema),
     defaultValues: {
@@ -227,6 +236,26 @@ export default function MenuItemForm({ open, onOpenChange, editItem }: MenuItemF
                       data-testid="input-menu-item-model"
                     />
                   </FormControl>
+                  {/* Optional: pick from discovered model files */}
+                  {modelFiles.length > 0 && (
+                    <div className="mt-2">
+                      <Select
+                        onValueChange={(val) => form.setValue("modelUrl", val)}
+                        value={field.value || undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-menu-item-model">
+                            <SelectValue placeholder="Choose from uploaded models" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {modelFiles.map((f) => (
+                            <SelectItem key={f} value={f}>{f}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

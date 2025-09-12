@@ -1,10 +1,12 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 const createOrderRequestSchema = z.object({
   tableNumber: z.number().min(1).max(100),
@@ -55,6 +57,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error during admin login:", error);
       res.status(500).json({ success: false, message: "Login failed" });
+    }
+  });
+
+  // Admin utility: list available model files from public directories
+  app.get("/api/admin/model-files", requireAdminAuth, async (_req, res) => {
+    try {
+      // Prefer built assets in production
+      const distPublic = path.resolve(import.meta.dirname, "public");
+      // Fallback to client/public in development
+      const clientPublic = path.resolve(import.meta.dirname, "..", "client", "public");
+      const baseDir = fs.existsSync(distPublic) ? distPublic : clientPublic;
+
+      const dirs = [
+        path.join(baseDir, "models"),
+        path.join(baseDir, "models-compressed"),
+      ];
+
+      const results: string[] = [];
+      const exts = new Set([".glb", ".gltf", ".usdz"]);
+
+      function walk(dir: string) {
+        if (!fs.existsSync(dir)) return;
+        const entries = fs.readdirSync(dir, { withFileTypes: true });
+        for (const e of entries) {
+          const full = path.join(dir, e.name);
+          if (e.isDirectory()) {
+            walk(full);
+          } else {
+            const ext = path.extname(full).toLowerCase();
+            if (exts.has(ext)) {
+              const rel = path.relative(baseDir, full).split(path.sep).join("/");
+              results.push("/" + rel);
+            }
+          }
+        }
+      }
+
+      for (const d of dirs) walk(d);
+
+      // Sort for stability
+      results.sort((a, b) => a.localeCompare(b));
+      res.json(results);
+    } catch (err) {
+      console.error("Error listing model files:", err);
+      res.status(500).json({ message: "Failed to list model files" });
     }
   });
 

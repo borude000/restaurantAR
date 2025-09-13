@@ -13,6 +13,7 @@ import { ArrowLeft, CreditCard, Banknote } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useCreateOrder } from "@/hooks/use-orders";
 import { useToast } from "@/hooks/use-toast";
+import { formatINR } from "@/lib/utils";
 
 const checkoutSchema = z.object({
   paymentMethod: z.enum(["cash", "card"]),
@@ -27,6 +28,30 @@ export default function Checkout() {
   const { items, totalAmount, clearCart } = useCart();
   const createOrder = useCreateOrder();
   const { toast } = useToast();
+
+  // Lightweight Razorpay script loader
+  async function loadRazorpay(): Promise<void> {
+    if ((window as any).Razorpay) return;
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Razorpay"));
+      document.body.appendChild(script);
+    });
+  }
+
+  // Read brand color from Tailwind CSS variable --primary
+  function getBrandColor(): string {
+    try {
+      const root = document.documentElement;
+      const color = getComputedStyle(root).getPropertyValue("--primary").trim();
+      if (color) return color;
+    } catch {}
+    // Fallback to a pleasant green matching the app tone
+    return "#16a34a"; // tailwind emerald-600
+  }
 
   const form = useForm<CheckoutForm>({
     resolver: zodResolver(checkoutSchema),
@@ -65,6 +90,64 @@ export default function Checkout() {
     if (!tableNumber) return;
 
     try {
+      // If user selected online payment, collect payment first
+      if (data.paymentMethod === "card") {
+        await loadRazorpay();
+
+        const key = (import.meta as any).env?.VITE_RAZORPAY_KEY_ID || "rzp_test_gLSezl1mumwdVs"; // test key fallback
+        const amountPaise = Math.round((totalAmount * 1.08) * 100); // same 8% tax as UI
+
+        await new Promise<void>((resolve, reject) => {
+          const rzp = new (window as any).Razorpay({
+            key,
+            amount: amountPaise,
+            currency: "INR",
+            name: "Restaurant AR",
+            description: "Order Payment",
+            prefill: {},
+            theme: { color: getBrandColor() },
+            handler: async (response: any) => {
+              try {
+                // Only after successful payment, create the order
+                const orderData = {
+                  tableNumber,
+                  items: items.map(item => ({
+                    menuItemId: item.menuItemId,
+                    quantity: item.quantity,
+                    unitPrice: item.price,
+                  })),
+                  paymentMethod: "card" as const,
+                  specialInstructions: `${data.specialInstructions || ""}\nPaid via Razorpay: ${response.razorpay_payment_id}`.trim(),
+                };
+                const order = await createOrder.mutateAsync(orderData);
+                clearCart();
+                toast({
+                  title: "Payment Successful!",
+                  description: `Your order #${order.orderNumber} has been placed.`,
+                });
+                setLocation(`/order-status/${order.orderNumber}`);
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            },
+            modal: {
+              ondismiss: () => {
+                toast({
+                  title: "Payment Cancelled",
+                  description: "You can try again.",
+                  variant: "destructive",
+                });
+                reject(new Error("Payment cancelled"));
+              },
+            },
+          });
+          rzp.open();
+        });
+        return; // stop here, order is already created in handler
+      }
+
+      // Cash flow: place order directly
       const orderData = {
         tableNumber,
         items: items.map(item => ({
@@ -75,15 +158,12 @@ export default function Checkout() {
         paymentMethod: data.paymentMethod,
         specialInstructions: data.specialInstructions,
       };
-
       const order = await createOrder.mutateAsync(orderData);
-      
       clearCart();
       toast({
         title: "Order Placed Successfully!",
         description: `Your order #${order.orderNumber} has been received.`,
       });
-      
       setLocation(`/order-status/${order.orderNumber}`);
     } catch (error) {
       toast({
@@ -141,19 +221,19 @@ export default function Checkout() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span className="text-card-foreground" data-testid="text-checkout-subtotal">
-                      ${totalAmount.toFixed(2)}
+                      {formatINR(totalAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tax (8%)</span>
                     <span className="text-card-foreground" data-testid="text-checkout-tax">
-                      ${tax.toFixed(2)}
+                      {formatINR(tax)}
                     </span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg border-t border-border pt-2">
                     <span className="text-card-foreground">Total</span>
                     <span className="text-primary" data-testid="text-checkout-total">
-                      ${finalTotal.toFixed(2)}
+                      {formatINR(finalTotal)}
                     </span>
                   </div>
                 </div>
@@ -243,7 +323,7 @@ export default function Checkout() {
             >
               {createOrder.isPending 
                 ? "Placing Order..." 
-                : `Place Order - $${finalTotal.toFixed(2)}`
+                : `Place Order - ${formatINR(finalTotal)}`
               }
             </Button>
           </form>
@@ -252,7 +332,7 @@ export default function Checkout() {
         {/* Payment Info */}
         <div className="text-center text-sm text-muted-foreground space-y-1">
           <p>• Cash payment: Pay when the order arrives</p>
-          <p>• Online payment: Secure checkout with Stripe</p>
+          <p>• Online payment: Secure checkout with Razorpay</p>
         </div>
       </div>
     </div>

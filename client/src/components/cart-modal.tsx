@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { formatINR } from "@/lib/utils";
 
 interface CartModalProps {
   open: boolean;
@@ -53,7 +54,7 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
                       {item.name}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      ${item.price.toFixed(2)}
+                      {formatINR(item.price)}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -99,19 +100,19 @@ export default function CartModal({ open, onOpenChange }: CartModalProps) {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="text-card-foreground" data-testid="text-cart-subtotal">
-                  ${totalAmount.toFixed(2)}
+                  {formatINR(totalAmount)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax (8%)</span>
                 <span className="text-card-foreground" data-testid="text-cart-tax">
-                  ${tax.toFixed(2)}
+                  {formatINR(tax)}
                 </span>
               </div>
               <div className="flex justify-between font-semibold text-lg border-t border-border pt-2">
                 <span className="text-card-foreground">Total</span>
                 <span className="text-primary" data-testid="text-cart-total">
-                  ${finalTotal.toFixed(2)}
+                  {formatINR(finalTotal)}
                 </span>
               </div>
             </div>

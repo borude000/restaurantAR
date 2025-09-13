@@ -188,10 +188,10 @@ export default function MenuItemForm({ open, onOpenChange, editItem }: MenuItemF
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Price ($) *</FormLabel>
+                  <FormLabel>Price (₹) *</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="12.99"
+                      placeholder="199.00"
                       type="number"
                       step="0.01"
                       {...field}

@@ -7,6 +7,7 @@ import { ArrowLeft, Clock, Bell } from "lucide-react";
 import { useOrderByNumber, useOrdersByTable } from "@/hooks/use-orders";
 import { useToast } from "@/hooks/use-toast";
 import OrderStatusTracker from "@/components/order-status-tracker";
+import { formatINR } from "@/lib/utils";
 import { SlideUp, Stagger, StaggerItem, TapScale } from "@/components/ui/motion";
 
 export default function OrderStatus() {
@@ -195,7 +196,7 @@ export default function OrderStatus() {
                         {item.menuItem.name} x{item.quantity}
                       </span>
                       <span className="text-muted-foreground">
-                        ${item.totalPrice}
+                        {formatINR(item.totalPrice)}
                       </span>
                     </div>
                   </StaggerItem>
@@ -205,7 +206,7 @@ export default function OrderStatus() {
                 <div className="flex justify-between font-semibold">
                   <span className="text-card-foreground">Total</span>
                   <span className="text-primary" data-testid="text-order-total">
-                    ${order.totalAmount}
+                    {formatINR(order.totalAmount)}
                   </span>
                 </div>
               </div>

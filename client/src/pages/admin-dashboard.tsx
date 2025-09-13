@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import MenuManagement from "@/components/menu-management";
 import type { OrderWithItems } from "@shared/schema";
 import { FadeIn, SlideUp, Stagger, StaggerItem, TapScale } from "@/components/ui/motion";
+import { formatINR } from "@/lib/utils";
 
 interface DashboardStats {
   totalSales: number;
@@ -117,14 +118,14 @@ export default function AdminDashboard() {
                 <span className="text-card-foreground">
                   {item.menuItem.name} x{item.quantity}
                 </span>
-                <span className="text-muted-foreground">${item.totalPrice}</span>
+                <span className="text-muted-foreground">{formatINR(item.totalPrice)}</span>
               </div>
             ))}
           </div>
           
           <div className="flex justify-between items-center pt-2 border-t border-border">
             <span className="font-semibold text-primary" data-testid={`text-order-total-${order.id}`}>
-              ${order.totalAmount}
+              {formatINR(order.totalAmount)}
             </span>
             <Badge variant="outline" data-testid={`badge-payment-method-${order.id}`}>
               {order.paymentMethod}
@@ -222,7 +223,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold" data-testid="stat-total-sales">
-                      ${stats.totalSales.toFixed(2)}
+                      {formatINR(stats.totalSales)}
                     </div>
                   </CardContent>
                 </Card>
@@ -250,7 +251,7 @@ export default function AdminDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold" data-testid="stat-avg-order">
-                      ${stats.avgOrder.toFixed(2)}
+                      {formatINR(stats.avgOrder)}
                     </div>
                   </CardContent>
                 </Card>
@@ -330,7 +331,7 @@ export default function AdminDashboard() {
                                   </p>
                                 </div>
                                 <div className="text-right">
-                                  <div className="font-semibold text-primary">${order.totalAmount}</div>
+                                  <div className="font-semibold text-primary">{formatINR(order.totalAmount)}</div>
                                   <div className="flex items-center space-x-2 mt-1">
                                     <Badge variant="outline" className="text-xs">
                                       {order.paymentMethod}
@@ -359,7 +360,7 @@ export default function AdminDashboard() {
                                     <span className="text-card-foreground">
                                       {item.menuItem.name} x{item.quantity}
                                     </span>
-                                    <span className="text-muted-foreground">${item.totalPrice}</span>
+                                    <span className="text-muted-foreground">{formatINR(item.totalPrice)}</span>
                                   </div>
                                 ))}
                               </div>

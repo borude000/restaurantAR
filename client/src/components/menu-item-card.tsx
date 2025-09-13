@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import MenuItem3DModal from "./menu-item-3d-modal";
 import type { MenuItemWithCategory } from "@shared/schema";
 import { TapScale } from "@/components/ui/motion";
+import { formatINR } from "@/lib/utils";
 
 interface MenuItemCardProps {
   item: MenuItemWithCategory;
@@ -71,7 +72,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
               )}
               <div className="flex items-center mt-2 space-x-3">
                 <span className="font-bold text-primary" data-testid={`text-item-price-${item.id}`}>
-                  ${Number(item.price).toFixed(2)}
+                  {formatINR(Number(item.price))}
                 </span>
                 {item.modelUrl && (
                   <TapScale>

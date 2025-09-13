@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import MenuItemForm from "./menu-item-form";
 import type { MenuItemWithCategory, Category } from "@shared/schema";
+import { formatINR } from "@/lib/utils";
 
 export default function MenuManagement() {
   const [showForm, setShowForm] = useState(false);
@@ -188,7 +189,7 @@ export default function MenuManagement() {
                     
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-primary">
-                        ${parseFloat(item.price).toFixed(2)}
+                        {formatINR(parseFloat(item.price))}
                       </span>
                       <Badge variant="outline" className="text-xs">
                         {item.category?.name || 'No Category'}

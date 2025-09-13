@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import ModelViewer from "./model-viewer";
+import { formatINR } from "@/lib/utils";
 import type { MenuItemWithCategory } from "@shared/schema";
 
 interface MenuItem3DModalProps {
@@ -40,7 +41,7 @@ export default function MenuItem3DModal({ item, open, onOpenChange }: MenuItem3D
             <h3 className="font-semibold">{item.name}</h3>
             <p className="text-sm text-muted-foreground">{item.description}</p>
             <p className="text-lg font-bold text-primary">
-              ${Number(item.price).toFixed(2)}
+              {formatINR(Number(item.price))}
             </p>
           </div>
           

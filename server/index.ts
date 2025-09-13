@@ -1,5 +1,7 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import { sql } from "drizzle-orm";
+import { db } from "./db";
 import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -51,6 +53,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Ensure required columns exist in production environments where drizzle-kit push isn't available
+  async function ensureSchema() {
+    try {
+      // Add customer_name to orders if it doesn't exist (idempotent)
+      await db.execute(sql`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_name varchar`);
+    } catch (e) {
+      console.error("Schema ensure error:", e);
+    }
+  }
+
+  await ensureSchema();
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

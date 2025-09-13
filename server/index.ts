@@ -58,7 +58,9 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    // In development, avoid rethrowing to prevent Vite overlay from sticking.
+    // Log the error for visibility.
+    console.error("API error:", err);
   });
 
   // importantly only setup vite in development and after

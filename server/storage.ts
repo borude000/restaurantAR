@@ -357,6 +357,7 @@ export class DatabaseStorage implements IStorage {
   }> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString();
 
     const stats = await db
       .select({
@@ -366,7 +367,7 @@ export class DatabaseStorage implements IStorage {
         tablesServed: sql<number>`COUNT(DISTINCT ${orders.tableNumber})`,
       })
       .from(orders)
-      .where(sql`${orders.createdAt} >= ${today}`);
+      .where(sql`${orders.createdAt} >= ${todayISO}`);
 
     return {
       totalSales: Number(stats[0].totalSales),
@@ -379,6 +380,7 @@ export class DatabaseStorage implements IStorage {
   async getSalesByHour(): Promise<Array<{ hour: number; sales: number; orders: number }>> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString();
 
     const hourlyStats = await db
       .select({
@@ -387,7 +389,7 @@ export class DatabaseStorage implements IStorage {
         orders: sql<number>`COUNT(*)`,
       })
       .from(orders)
-      .where(sql`${orders.createdAt} >= ${today}`)
+      .where(sql`${orders.createdAt} >= ${todayISO}`)
       .groupBy(sql`EXTRACT(HOUR FROM ${orders.createdAt})`)
       .orderBy(sql`EXTRACT(HOUR FROM ${orders.createdAt})`);
 
@@ -415,6 +417,7 @@ export class DatabaseStorage implements IStorage {
   async getPopularItems(): Promise<Array<{ name: string; quantity: number; revenue: number }>> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString();
 
     const popularItems = await db
       .select({
@@ -425,7 +428,7 @@ export class DatabaseStorage implements IStorage {
       .from(orderItems)
       .leftJoin(menuItems, eq(orderItems.menuItemId, menuItems.id))
       .leftJoin(orders, eq(orderItems.orderId, orders.id))
-      .where(sql`${orders.createdAt} >= ${today}`)
+      .where(sql`${orders.createdAt} >= ${todayISO}`)
       .groupBy(menuItems.id, menuItems.name)
       .orderBy(sql`SUM(${orderItems.quantity}) DESC`)
       .limit(10);

@@ -11,6 +11,7 @@ import { useTheme } from "next-themes";
 
 export default function Landing() {
   const [tableNumber, setTableNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { resolvedTheme, setTheme } = useTheme();
@@ -18,6 +19,15 @@ export default function Landing() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!customerName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const table = parseInt(tableNumber);
     if (!table || table < 1 || table > 50) {
       toast({
@@ -30,6 +40,7 @@ export default function Landing() {
 
     // Store table number in session storage for later use
     sessionStorage.setItem("tableNumber", tableNumber);
+    sessionStorage.setItem("customerName", customerName.trim());
     setLocation("/menu");
   };
 
@@ -71,11 +82,26 @@ export default function Landing() {
           </div>
         </SlideUp>
 
-        {/* Table number input form */}
+        {/* Table number and name input form */}
         <SlideUp>
           <Card className="shadow-xl bg-card/60 backdrop-blur-md border border-border/60">
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customer-name" className="text-foreground">
+                    Your Name
+                  </Label>
+                  <Input
+                    id="customer-name"
+                    type="text"
+                    placeholder="Enter your name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="text-center text-lg h-12 focus-visible:ring-2 focus-visible:ring-primary"
+                    required
+                    data-testid="input-customer-name"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="table-number" className="text-foreground">
                     Table Number

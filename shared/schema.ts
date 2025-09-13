@@ -46,6 +46,7 @@ export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   orderNumber: varchar("order_number").notNull().unique(),
   tableNumber: integer("table_number").notNull(),
+  customerName: varchar("customer_name"),
   status: varchar("status").notNull().default("received"), // received, preparing, ready, served
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: varchar("payment_method").notNull(), // cash, card

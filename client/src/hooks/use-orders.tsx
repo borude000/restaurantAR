@@ -41,6 +41,7 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: async (orderData: {
       tableNumber: number;
+      customerName?: string;
       items: Array<{
         menuItemId: string;
         quantity: number;
@@ -86,41 +87,56 @@ export function useUpdatePaymentStatus() {
   });
 }
 
-export function useTodayStats() {
+export function useTodayStats(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["todayStats"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/today");
+      const response = await fetch("/api/analytics/today", { credentials: "include" });
+      if (response.status === 401) {
+        // Not authenticated for admin analytics
+        return null;
+      }
       if (!response.ok) {
-        throw new Error("Failed to fetch today stats");
+        const text = await response.text().catch(() => "Failed to fetch today stats");
+        throw new Error(text || "Failed to fetch today stats");
       }
       return response.json();
     },
     refetchInterval: 30000, // Refetch every 30 seconds
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function useSalesByHour() {
+export function useSalesByHour(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["salesByHour"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/sales-by-hour");
+      const response = await fetch("/api/analytics/sales-by-hour", { credentials: "include" });
+      if (response.status === 401) {
+        return [] as Array<{ hour: number; sales: number; orders: number }>;
+      }
       if (!response.ok) {
-        throw new Error("Failed to fetch sales by hour");
+        const text = await response.text().catch(() => "Failed to fetch sales by hour");
+        throw new Error(text || "Failed to fetch sales by hour");
       }
       return response.json();
     },
     refetchInterval: 60000, // Refetch every minute
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function usePopularItems() {
+export function usePopularItems(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["popularItems"],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/popular-items");
+      const response = await fetch("/api/analytics/popular-items", { credentials: "include" });
+      if (response.status === 401) {
+        return [] as Array<{ name: string; quantity: number; revenue: number }>;
+      }
       if (!response.ok) {
-        throw new Error("Failed to fetch popular items");
+        const text = await response.text().catch(() => "Failed to fetch popular items");
+        throw new Error(text || "Failed to fetch popular items");
       }
       return response.json();
     },

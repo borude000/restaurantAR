@@ -17,6 +17,7 @@ const createOrderRequestSchema = z.object({
   })),
   paymentMethod: z.enum(["cash", "card"]),
   specialInstructions: z.string().optional(),
+  customerName: z.string().min(1).max(100).optional(),
 });
 
 const adminLoginSchema = z.object({
@@ -77,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results: string[] = [];
       const exts = new Set([".glb", ".gltf", ".usdz"]);
 
-      function walk(dir: string) {
+      const walk = (dir: string) => {
         if (!fs.existsSync(dir)) return;
         const entries = fs.readdirSync(dir, { withFileTypes: true });
         for (const e of entries) {
@@ -175,6 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const order = {
         tableNumber: validatedData.tableNumber,
+        customerName: validatedData.customerName || null,
         status: "received" as const,
         totalAmount: totalAmount.toString(),
         paymentMethod: validatedData.paymentMethod,

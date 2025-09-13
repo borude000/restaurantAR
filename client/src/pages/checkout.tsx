@@ -25,6 +25,7 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 export default function Checkout() {
   const [, setLocation] = useLocation();
   const [tableNumber, setTableNumber] = useState<number | null>(null);
+  const [customerName, setCustomerName] = useState<string>("");
   const { items, totalAmount, clearCart } = useCart();
   const createOrder = useCreateOrder();
   const { toast } = useToast();
@@ -63,6 +64,7 @@ export default function Checkout() {
 
   useEffect(() => {
     const storedTableNumber = sessionStorage.getItem("tableNumber");
+    const storedCustomerName = sessionStorage.getItem("customerName") || "";
     if (!storedTableNumber) {
       toast({
         title: "Table Number Required",
@@ -84,6 +86,7 @@ export default function Checkout() {
     }
     
     setTableNumber(parseInt(storedTableNumber));
+    setCustomerName(storedCustomerName);
   }, [items.length, setLocation, toast]);
 
   const onSubmit = async (data: CheckoutForm) => {
@@ -111,6 +114,7 @@ export default function Checkout() {
                 // Only after successful payment, create the order
                 const orderData = {
                   tableNumber,
+                  customerName: customerName || undefined,
                   items: items.map(item => ({
                     menuItemId: item.menuItemId,
                     quantity: item.quantity,
@@ -150,6 +154,7 @@ export default function Checkout() {
       // Cash flow: place order directly
       const orderData = {
         tableNumber,
+        customerName: customerName || undefined,
         items: items.map(item => ({
           menuItemId: item.menuItemId,
           quantity: item.quantity,
@@ -205,6 +210,12 @@ export default function Checkout() {
               <CardContent className="p-4">
                 <h3 className="font-semibold text-card-foreground mb-3">Order Summary</h3>
                 <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Customer Name</span>
+                    <span className="text-card-foreground" data-testid="text-checkout-name">
+                      {customerName || "Guest"}
+                    </span>
+                  </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Table Number</span>
                     <span className="text-card-foreground" data-testid="text-checkout-table">

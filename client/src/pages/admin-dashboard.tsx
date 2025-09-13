@@ -36,9 +36,10 @@ export default function AdminDashboard() {
   const updatePaymentStatus = useUpdatePaymentStatus();
   const { toast } = useToast();
 
-  const { data: stats } = useTodayStats();
-  const { data: salesByHour = [] } = useSalesByHour();
-  const { data: popularItems = [] } = usePopularItems();
+  const isAnalyticsTab = selectedTab === "analytics";
+  const { data: stats } = useTodayStats({ enabled: isAnalyticsTab });
+  const { data: salesByHour = [] } = useSalesByHour({ enabled: isAnalyticsTab });
+  const { data: popularItems = [] } = usePopularItems({ enabled: isAnalyticsTab });
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
@@ -89,7 +90,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-start mb-3">
             <div>
               <h3 className="font-semibold text-card-foreground" data-testid={`text-order-table-${order.id}`}>
-                Table {order.tableNumber}
+                Table {order.tableNumber}{order.customerName ? ` • ${order.customerName}` : ""}
               </h3>
               <p className="text-sm text-muted-foreground" data-testid={`text-order-time-${order.id}`}>
                 {order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : 'Unknown time'} • #{order.orderNumber}
@@ -324,7 +325,7 @@ export default function AdminDashboard() {
                               <div className="flex justify-between items-start mb-3">
                                 <div>
                                   <h4 className="font-semibold text-card-foreground">
-                                    Table {order.tableNumber} • #{order.orderNumber}
+                                    Table {order.tableNumber}{order.customerName ? ` • ${order.customerName}` : ""} • #{order.orderNumber}
                                   </h4>
                                   <p className="text-sm text-muted-foreground">
                                     {order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Unknown time'}
